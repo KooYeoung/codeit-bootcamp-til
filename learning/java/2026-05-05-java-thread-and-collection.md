@@ -276,6 +276,8 @@ Thread.sleep(1000);
 
 지정한 시간보다 더 오래 대기할 수 있으며, 운영체제 스케줄링에 영향을 받는다.
 
+또한 `sleep()`은 스레드를 잠시 멈추지만, 이미 획득한 Lock을 반납하지는 않는다.
+
 따라서 스레드의 종료 순서나 실행 순서를 맞추기 위해 `sleep()`에 의존하는 코드는 위험하다.
 
 ---
@@ -379,9 +381,9 @@ Java 메모리 모델은 멀티스레드 환경에서 변수에 접근하는 규
 
 ## 15. volatile
 
-`volatile`은 멀티스레드 환경에서 변수의 가시성을 보장하기 위해 사용한다.
+`volatile`은 멀티스레드 환경에서 한 스레드가 바꾼 값을 다른 스레드가 볼 수 있게 하기 위해 사용한다.
 
-`volatile`이 붙은 변수는 값을 읽을 때 메인 메모리와 동기화된다.
+`volatile`이 붙은 변수는 값을 읽고 쓸 때 다른 스레드가 변경 내용을 더 잘 확인할 수 있도록 동작한다.
 
 예시:
 
@@ -391,14 +393,18 @@ static volatile boolean exitFlag = false;
 
 `volatile`을 사용하면 한 스레드에서 변경한 값을 다른 스레드가 확인할 수 있도록 도와준다.
 
+이런 특징을 가시성이라고 부른다.
+
+더 깊게 들어가면 값을 읽고 쓰는 순서 보장과도 관련이 있지만, 처음에는 "다른 스레드가 바뀐 값을 볼 수 있게 해준다"라고 이해해도 된다.
+
 하지만 `volatile`은 원자성을 보장하지 않는다.
 
 예를 들어 `counter++` 같은 복합 연산은 여전히 경쟁 조건이 발생할 수 있다.
 
 정리하면 다음과 같다.
 
-- `volatile`: 가시성 보장
-- `volatile`: 명령어 재정렬 최적화 방지 효과
+- `volatile`: 한 스레드에서 바꾼 값을 다른 스레드가 볼 수 있게 도와줌
+- `volatile`: 값을 읽고 쓰는 순서 보장과 관련이 있음
 - `volatile`: 복합 연산의 원자성은 보장하지 않음
 
 ---
@@ -486,11 +492,15 @@ AtomicInteger counter = new AtomicInteger(0);
 counter.incrementAndGet();
 ```
 
-`AtomicInteger`는 단순 증가 같은 연산에서 Race Condition을 줄이는 데 사용할 수 있다.
+`AtomicInteger`는 하나의 숫자 값을 안전하게 증가시키거나 감소시킬 때 사용할 수 있다.
 
 `synchronized`처럼 스레드를 막는 방식이 아니라, Non-blocking 방식으로 동작할 수 있다.
 
 단순 카운터처럼 원자적 연산이 필요한 경우 유용하다.
+
+다만 여러 변수 값을 함께 안전하게 바꿔야 하는 작업까지 자동으로 해결하지는 못한다.
+
+이런 경우에는 `synchronized`나 `ReentrantLock`으로 전체 작업 흐름을 보호해야 할 수 있다.
 
 ---
 
@@ -515,8 +525,16 @@ try {
 예를 들어 `tryLock()`을 사용하면 일정 시간 동안 Lock 획득을 시도하고, 실패했을 때 다른 처리를 할 수 있다.
 
 ```java
-lock.tryLock(1000, TimeUnit.MILLISECONDS);
+if (lock.tryLock(1000, TimeUnit.MILLISECONDS)) {
+    try {
+        // 임계 영역
+    } finally {
+        lock.unlock();
+    }
+}
 ```
+
+`tryLock()`은 Lock 획득 성공 여부를 반환하므로, Lock을 얻은 경우에만 `unlock()`을 호출해야 한다.
 
 정리하면 다음과 같다.
 
@@ -532,15 +550,23 @@ lock.tryLock(1000, TimeUnit.MILLISECONDS);
 
 `wait()`는 현재 스레드를 대기 상태로 만든다.
 
+`wait()`는 대기 상태로 들어가면서 현재 스레드가 가지고 있던 monitor lock을 반납한다.
+
 `notify()`는 대기 중인 스레드 중 하나를 깨운다.
+
+다만 `notify()`가 원하는 특정 스레드를 깨운다는 보장은 없으므로, 상황에 따라 `notifyAll()`이 더 안전할 수 있다.
 
 이 메서드들은 `synchronized` 블록 안에서 사용해야 한다.
 
 ```java
 synchronized (this) {
-    wait();
+    while (!condition) {
+        wait();
+    }
 }
 ```
+
+`wait()`는 spurious wakeup 가능성이 있으므로 보통 `if`가 아니라 `while`로 조건을 다시 확인한다.
 
 ```java
 synchronized (this) {
