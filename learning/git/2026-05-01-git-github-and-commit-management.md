@@ -178,6 +178,10 @@ git push -u origin main
 git pull
 ```
 
+`git pull`은 보통 `git fetch`로 원격 변경사항을 가져온 뒤, 현재 브랜치에 `merge`하는 방식으로 동작한다.
+
+설정에 따라 `merge` 대신 `rebase` 방식으로 동작할 수도 있다.
+
 협업 중에는 다른 사람이 원격 저장소에 올린 변경사항을 내 로컬에도 반영해야 하므로 `git pull`을 사용한다.
 
 ### git clone
@@ -479,7 +483,9 @@ git remote add origin https://github.com/username/repository.git
 
 ### upstream
 
-`upstream`은 로컬 브랜치가 연결해서 바라보는 원격 브랜치를 의미한다.
+`upstream`은 문맥에 따라 두 가지 의미로 사용될 수 있다.
+
+첫 번째는 로컬 브랜치가 추적하는 원격 브랜치이다.
 
 다음 명령어를 실행하면 로컬 `main` 브랜치와 원격 `origin/main` 브랜치가 연결된다.
 
@@ -496,6 +502,16 @@ git push
 git pull
 ```
 
+현재 브랜치의 tracking 상태는 다음 명령어로 확인할 수 있다.
+
+```bash
+git branch -vv
+```
+
+두 번째는 fork 협업에서 원본 저장소를 가리키는 remote 이름이다.
+
+예를 들어 내가 fork한 저장소를 `origin`으로 두고, 원본 저장소를 `upstream`이라는 이름으로 추가해 사용할 수 있다.
+
 정리하면 다음과 같다.
 
 ```text
@@ -505,8 +521,11 @@ origin
 origin/main
 → origin 원격 저장소의 main 브랜치
 
-upstream
+upstream branch
 → 현재 로컬 브랜치가 연결된 원격 브랜치
+
+upstream remote
+→ fork 협업에서 원본 저장소 remote 이름으로 자주 사용
 
 tracking connection
 → 로컬 브랜치와 원격 브랜치가 연결된 상태
