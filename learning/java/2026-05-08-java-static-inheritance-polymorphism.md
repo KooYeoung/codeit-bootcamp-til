@@ -35,7 +35,7 @@ class Counter {
 }
 ```
 
-위 코드에서 `count`는 객체마다 따로 존재하는 값이 아니라 `Counter` 클래스가 공유하는 값이다. 그래서 객체가 여러 개 만들어져도 하나의 `count` 값이 증가한다고 이해했다.
+위 코드에서 `count`는 객체마다 따로 존재하는 값이 아니라 `Counter` 클래스가 공유하는 값이다. 그래서 객체가 여러 개 만들어져도 하나의 `count` 값이 증가한다.
 
 `static` 멤버는 클래스 이름으로 바로 접근할 수 있다.
 
@@ -43,7 +43,7 @@ class Counter {
 Counter.count = 10;
 ```
 
-객체를 만들지 않아도 사용할 수 있기 때문에 참조 변수가 꼭 필요하지 않다. 이 점 때문에 `static` 메서드 안에서는 `this`를 사용할 수 없다. `this`는 현재 객체 자신을 가리키는 키워드인데, `static` 메서드는 객체 생성 없이 호출될 수 있기 때문이다.
+객체를 만들지 않아도 사용할 수 있기 때문에 참조 변수가 꼭 필요하지 않다. 이 점 때문에 `static` 메서드 안에서는 `this`를 사용할 수 없다. `this`는 현재 객체를 가리키는데, 객체를 만들지 않은 상태에서는 `this`가 무엇을 가리키는지 알 수 없기 때문이다.
 
 ```java
 class Example {
@@ -51,7 +51,7 @@ class Example {
     static int shared = 20;
 
     static void printShared() {
-        System.out.println(shared);
+        System.out.println(shared);  // static 멤버는 직접 접근 가능
     }
 }
 ```
@@ -63,13 +63,13 @@ class Example {
     int number = 10;
 
     static void printNumber() {
-        Example example = new Example();
+        Example example = new Example();  // 객체 생성 필요
         System.out.println(example.number);
     }
 }
 ```
 
-`static`은 모든 객체가 공유해도 문제가 없는 값이나 기능에 붙이는 것이 적절하다. 객체마다 달라져야 하는 상태에 `static`을 붙이면 의도하지 않은 값 공유가 발생할 수 있다.
+`static`은 모든 객체가 공유해도 문제가 없는 값이나 기능에 붙이는 것이 적절하다. 객체마다 달라져야 하는 상태에 `static`을 붙이면 의도하지 않은 값 변경이 발생할 수 있으므로 주의해야 한다.
 
 ---
 
@@ -106,6 +106,7 @@ class AppConfig {
 
 ```java
 final int maxCount = 10;
+// maxCount = 20;  // 오류 발생
 ```
 
 상수는 변하지 않는 값이면서 여러 객체가 공유해도 되는 값이므로 보통 `static final`을 함께 사용한다.
@@ -116,7 +117,9 @@ class MathValue {
 }
 ```
 
-`static`은 공유의 의미가 있고, `final`은 변경 불가의 의미가 있다. 따라서 `static final`은 클래스 전체에서 공유하면서도 바뀌면 안 되는 값을 표현할 때 적합하다고 이해했다.
+`static`은 공유의 의미가 있고, `final`은 변경 불가의 의미가 있다. 따라서 `static final`은 클래스 전체에서 공유하면서도 바뀌면 안 되는 값을 표현할 때 사용한다. 상수 이름은 관례상 모두 대문자로 작성한다.
+
+`final`을 클래스에 붙이면 그 클래스는 상속될 수 없고, 메서드에 붙이면 오버라이딩될 수 없다.
 
 ---
 
@@ -128,13 +131,13 @@ class MathValue {
 
 ```java
 class Animal {
-    void eat() {
+    public void eat() {
         System.out.println("먹는다");
     }
 }
 
 class Dog extends Animal {
-    void bark() {
+    public void bark() {
         System.out.println("짖는다");
     }
 }
@@ -144,9 +147,9 @@ class Dog extends Animal {
 
 Java에서 클래스 상속은 단일 상속만 가능하다. 즉, 하나의 클래스는 하나의 부모 클래스만 직접 상속할 수 있다.
 
-상속에서 주의할 점은 부모의 생성자는 상속되지 않는다는 것이다. 자식 객체가 만들어질 때 부모 객체 부분도 함께 만들어지지만, 부모 생성자를 그대로 물려받아 사용하는 것은 아니다.
+상속에서 주의할 점은 부모의 생성자는 상속되지 않는다는 것이다. 자식 객체가 만들어질 때 부모 객체 부분도 함께 만들어지지만, 부모 생성자를 명시적으로 호출해야 한다.
 
-또한 `private` 멤버는 자식 클래스에서 직접 접근할 수 없다. 부모 내부에 숨겨진 값은 부모가 제공하는 메서드를 통해 접근해야 한다.
+또한 `private` 멤버는 자식 클래스에서 직접 접근할 수 없다. 부모 내부에 숨겨진 값은 부모가 제공하는 `public` 메서드를 통해 접근해야 한다. `protected` 멤버는 같은 패키지의 클래스나 자식 클래스에서 접근할 수 있다.
 
 ---
 
@@ -158,14 +161,14 @@ Java에서 클래스 상속은 단일 상속만 가능하다. 즉, 하나의 클
 
 ```java
 class Animal {
-    void sound() {
+    public void sound() {
         System.out.println("소리를 낸다");
     }
 }
 
 class Cat extends Animal {
     @Override
-    void sound() {
+    public void sound() {
         System.out.println("야옹");
     }
 }
@@ -173,7 +176,7 @@ class Cat extends Animal {
 
 `Cat` 객체에서 `sound()`를 호출하면 부모의 메서드가 아니라 자식 클래스에서 다시 정의한 메서드가 실행된다.
 
-오버라이딩을 할 때는 부모 메서드와 이름, 매개변수, 반환 타입이 맞아야 한다. 접근 제한자는 부모보다 좁게 만들 수 없다.
+오버라이딩을 할 때는 부모 메서드와 이름, 매개변수, 반환 타입이 맞아야 한다. 접근 제한자는 부모보다 좁게 만들 수 없다. (예: `public`으로 선언된 메서드를 `private`으로 오버라이딩 불가)
 
 `@Override`는 필수 문법은 아니지만, 오버라이딩이 제대로 되었는지 컴파일러가 확인해 주므로 사용하는 것이 좋다고 느꼈다.
 
@@ -187,14 +190,16 @@ class Cat extends Animal {
 
 ```java
 class Parent {
-    Parent(String name) {
-        System.out.println(name);
+    protected String name;
+    
+    public Parent(String name) {
+        this.name = name;
     }
 }
 
 class Child extends Parent {
-    Child() {
-        super("parent");
+    public Child(String name) {
+        super(name);  // 부모 생성자 호출
     }
 }
 ```
@@ -205,19 +210,21 @@ class Child extends Parent {
 
 ```java
 class ParentPrinter {
-    void print() {
+    public void print() {
         System.out.println("parent");
     }
 }
 
 class ChildPrinter extends ParentPrinter {
     @Override
-    void print() {
-        super.print();
+    public void print() {
+        super.print();  // 부모의 print() 먼저 실행
         System.out.println("child");
     }
 }
 ```
+
+이렇게 하면 부모의 기능을 유지하면서 자식에서 추가 기능을 더할 수 있다.
 
 ---
 
@@ -228,19 +235,19 @@ class ChildPrinter extends ParentPrinter {
 Java에서는 자식 객체를 부모 타입의 참조 변수에 담을 수 있다.
 
 ```java
-Animal animal = new Cat();
+Animal animal = new Cat();  // Cat 객체를 Animal 타입으로 처리
 animal.sound();
 ```
 
-참조 변수의 타입은 `Animal`이지만 실제 객체는 `Cat`이다. 이때 오버라이딩된 메서드를 호출하면 실제 객체인 `Cat`의 메서드가 실행된다.
+참조 변수의 타입은 `Animal`이지만 실제 객체는 `Cat`이다. 이때 오버라이딩된 메서드를 호출하면 실제 객체인 `Cat`의 메서드가 실행된다. 이를 **동적 바인딩**이라고 한다.
 
 다형성을 사용하면 여러 자식 클래스를 부모 타입 하나로 묶어 다룰 수 있다.
 
 ```java
-Animal[] animals = { new Cat(), new Dog() };
+Animal[] animals = { new Cat(), new Dog(), new Bird() };
 
 for (Animal animal : animals) {
-    animal.sound();
+    animal.sound();  // 각 동물의 sound()가 호출됨
 }
 ```
 
@@ -258,6 +265,7 @@ for (Animal animal : animals) {
 
 ```java
 Animal animal = new Cat();
+// animal.scratch();  // 오류 - Animal 타입에는 scratch() 메서드가 없음
 ```
 
 이 상태에서 `Cat`에만 있는 기능을 사용하려면 자식 타입으로 형변환해야 한다.
@@ -271,6 +279,8 @@ if (animal instanceof Cat) {
 
 `instanceof`는 왼쪽 객체가 오른쪽 타입으로 다뤄질 수 있는지 확인할 때 사용한다. 형변환 전에 확인하면 잘못된 타입 캐스팅으로 인한 오류를 줄일 수 있다.
 
+**업캐스팅**(자식 → 부모)은 자동으로 이루어지지만, **다운캐스팅**(부모 → 자식)은 명시적으로 형변환해야 한다. 또한 실제 객체가 아닌 타입으로 다운캐스팅하면 `ClassCastException`이 발생한다.
+
 ---
 
 ## 9. 추상 클래스와 추상 메서드
@@ -281,26 +291,30 @@ if (animal instanceof Cat) {
 abstract void move();
 ```
 
-추상 메서드는 자식 클래스가 반드시 구현해야 하는 메서드의 틀이다.
+추상 메서드는 자식 클래스가 반드시 구현해야 하는 메서드의 틀이다. 자식 클래스에서 어떤 방식으로든 구현하도록 강제한다.
 
 추상 메서드를 하나라도 가진 클래스는 추상 클래스가 되어야 한다.
 
 ```java
 abstract class Vehicle {
-    abstract void move();
+    public abstract void move();
+    
+    public void stop() {  // 일반 메서드도 가능
+        System.out.println("정지한다");
+    }
 }
 
 class Car extends Vehicle {
     @Override
-    void move() {
+    public void move() {
         System.out.println("도로를 달린다");
     }
 }
 ```
 
-추상 클래스는 직접 객체를 만들 수 없다. 아직 완성되지 않은 부분이 있기 때문이다. 대신 추상 클래스를 상속받은 자식 클래스가 추상 메서드를 구현한 뒤 객체로 만들어진다.
+추상 클래스는 직접 객체를 만들 수 없다. 아직 완성되지 않은 부분이 있기 때문이다. 대신 추상 클래스를 상속받은 자식 클래스가 추상 메서드를 구현하면, 그 자식 클래스 객체는 만들 수 있다.
 
-추상 클래스는 공통 필드나 공통 메서드를 가질 수 있다. 그래서 여러 자식 클래스가 공유해야 하는 코드가 있고, 동시에 반드시 구현해야 하는 메서드가 있을 때 적합하다고 이해했다.
+추상 클래스는 공통 필드나 공통 메서드를 가질 수 있다. 그래서 여러 자식 클래스가 공유해야 하는 코드가 있고, 동시에 반드시 구현해야 하는 메서드가 있을 때 유용하다.
 
 ---
 
@@ -327,6 +341,8 @@ class Airplane implements Flyable {
 
 인터페이스는 객체를 직접 생성하기 위한 개념이 아니라, 객체들이 같은 방식으로 사용될 수 있도록 약속을 만드는 개념이다.
 
+인터페이스의 모든 메서드는 기본적으로 `public abstract`이다. 그래서 인터페이스를 구현하는 클래스의 메서드는 `public`으로 선언해야 한다.
+
 하나의 클래스는 여러 인터페이스를 구현할 수 있다.
 
 ```java
@@ -349,7 +365,7 @@ class MultiPrinter implements Printable, Scannable {
 }
 ```
 
-인터페이스를 사용하면 상속 관계가 깊지 않아도 같은 기능을 가진 객체들을 하나의 타입으로 다룰 수 있다. 이 점에서 다형성을 더 유연하게 사용할 수 있다고 이해했다.
+인터페이스를 사용하면 상속 관계가 깊지 않아도 같은 기능을 가진 객체들을 하나의 타입으로 다룰 수 있다. 이 점에서 다형성을 더 유연하게 사용할 수 있다.
 
 ---
 
@@ -366,12 +382,13 @@ class MultiPrinter implements Printable, Scannable {
 | 객체 생성 | 직접 생성 불가 | 직접 생성 불가 |
 | 다중 적용 | 클래스는 단일 상속 | 여러 인터페이스 구현 가능 |
 | 목적 | 공통 코드 재사용과 확장 | 동일한 사용 방식 강제 |
+| 필드/메서드 | 구현된 메서드, 필드, 생성자 가능 | 메서드 선언만 가능 (Java 8 이전) |
 
 추상 클래스는 부모 클래스의 공통 기능을 물려주면서 일부 기능의 구현을 자식에게 맡기는 구조이다.
 
 인터페이스는 클래스들이 같은 이름의 기능을 제공하도록 강제하고, 사용자 입장에서 같은 방식으로 사용할 수 있게 만드는 규칙에 가깝다.
 
-공통 필드나 구현된 메서드를 함께 물려줘야 한다면 추상 클래스를 고려할 수 있다. 서로 다른 계층의 클래스라도 같은 기능을 제공해야 한다면 인터페이스가 더 적합하다고 느꼈다.
+공통 필드나 구현된 메서드를 함께 물려줘야 한다면 추상 클래스를 고려할 수 있다. 서로 다른 계층의 클래스라도 같은 기능을 제공해야 한다면 인터페이스를 사용하는 것이 나을 수 있다.
 
 ---
 
@@ -379,10 +396,31 @@ class MultiPrinter implements Printable, Scannable {
 
 오늘은 Java 객체지향의 핵심 개념을 이어서 학습했다.
 
-`static`은 객체가 아니라 클래스 기준으로 공유되는 멤버이고, `final`은 변경을 막는 키워드이다.
+`static`은 객체가 아니라 클래스 기준으로 공유되는 멤버이고, `final`은 변경을 막는 키워드이다. Singleton 패턴을 통해 객체 생성을 제한하는 방법도 배웠다.
 
-상속은 공통 기능을 부모 클래스로 묶어 재사용하는 방식이며, 오버라이딩을 통해 자식 클래스에 맞는 동작으로 바꿀 수 있다.
+상속은 공통 기능을 부모 클래스로 묶어 재사용하는 방식이며, 오버라이딩을 통해 자식 클래스에 맞는 동작으로 바꿀 수 있다. `super` 키워드로 부모의 기능을 활용할 수 있다.
 
-다형성은 부모 타입이나 인터페이스 타입으로 여러 객체를 다룰 수 있게 해 준다. 이때 자식 고유 기능이 필요하면 타입 캐스팅과 `instanceof`를 함께 고려해야 한다.
+다형성은 부모 타입이나 인터페이스 타입으로 여러 객체를 다룰 수 있게 해 준다. 이때 자식 고유 기능이 필요하면 타입 캐스팅과 `instanceof`를 함께 활용한다.
 
-추상 클래스는 공통 코드와 미완성 메서드를 함께 다룰 때 유용하고, 인터페이스는 여러 클래스에 동일한 사용 규칙을 강제할 때 유용하다고 정리했다.
+추상 클래스는 공통 코드와 미완성 메서드를 함께 다룰 때 유용하고, 인터페이스는 여러 클래스에 동일한 사용 규칙을 강제할 때 유용하다. 두 개념을 구분해서 적절히 사용하는 것이 중요하다고 정리했다.
+
+이 개념들은 객체지향 프로그래밍의 기초이며, 실제 프로젝트에서 확장 가능하고 유지보수하기 쉬운 코드를 작성하는 데 필수적이다.
+
+---
+
+## 13. 주요 개념 정리
+
+### 접근 제한자의 범위
+- `public`: 모든 곳에서 접근 가능
+- `protected`: 같은 패키지와 상속받은 자식 클래스에서 접근 가능
+- `default` (접근 제한자 없음): 같은 패키지 내에서만 접근 가능
+- `private`: 같은 클래스 내에서만 접근 가능
+
+### 동적 바인딩
+참조 변수의 타입이 부모지만, 실제 객체의 타입이 자식일 때 메서드 호출은 자식의 오버라이딩된 메서드로 실행되는 현상.
+
+### 업캐스팅과 다운캐스팅
+- 업캐스팅: 자식 타입 → 부모 타입 (자동 형변환)
+- 다운캐스팅: 부모 타입 → 자식 타입 (명시적 형변환 필요, `instanceof` 확인 권장)
+
+이러한 개념들을 이해하고 적절히 적용하면 더 유연하고 확장 가능한 객체지향 코드를 작성할 수 있다.
