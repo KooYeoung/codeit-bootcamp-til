@@ -28,7 +28,7 @@
 - 기능 확장에는 열려 있어야 하고, 기존 코드 수정에는 닫혀 있어야 한다는 원칙이다.
 - 새로운 기능을 추가할 때 기존 코드를 계속 수정해야 한다면 버그가 생길 가능성이 커진다.
 - 인터페이스와 다형성을 활용하면 기존 코드를 크게 바꾸지 않고 새로운 구현체를 추가하는 방식으로 확장할 수 있다.
-- 다만 처음부터 모든 변경 가능성을 예상해 추상화를 많이 만들면 오히려 구조가 복잡해질 수 있으므로 실제로 변화가 예상되는 지점을 기준으로 적용해야 한다.
+- 다만 처음부터 모든 변경 가능성을 예상해 추상화를 많이 만들면 오히려 구조가 복잡해질 수 있으므로 실제로 변화가 예상되는 지점을 기준으로 적절히 적용해야 한다고 생각했다.
 
 ### LSP
 
@@ -49,7 +49,7 @@
 - DIP는 의존성 역전 원칙이다.
 - 구체 클래스에 직접 의존하기보다 역할을 나타내는 인터페이스에 의존하는 방향으로 설계하는 원칙이다.
 - 구현체를 직접 알고 있으면 구현이 바뀔 때 사용하는 코드도 함께 흔들릴 수 있다.
-- 인터페이스를 사이에 두면 사용하는 쪽은 “무엇을 할 수 있는가”에 집중하고, 실제 구현은 바꿔 끼우기 쉬워진다.
+- 인터페이스를 사이에 두면 사용하는 쪽은 "무엇을 할 수 있는가"에 집중하고, 실제 구현은 바꿔 끼우기 쉬워진다.
 
 ---
 
@@ -123,11 +123,39 @@ try {
 - 메서드 내부에서 복구 방법을 알기 어렵다면 호출한 쪽에서 상황에 맞게 처리하도록 넘길 수 있다.
 - 예외 처리를 한곳으로 모아 흐름을 정리하는 데 도움이 될 수 있다.
 
+```java
+public void readFile(String fileName) throws IOException {
+    FileReader reader = new FileReader(fileName);
+    // 파일을 읽는 코드
+    reader.close();
+}
+
+// 호출 쪽에서 처리
+try {
+    readFile("data.txt");
+} catch (IOException e) {
+    System.out.println("파일을 읽을 수 없습니다.");
+}
+```
+
 ### 사용자 정의 예외
 
 - Java 표준 예외만으로 도메인의 문제 상황을 충분히 표현하기 어려울 때 사용자 정의 예외를 만들 수 있다.
 - 보통 `Exception` 또는 `RuntimeException`을 상속하고, 이름은 `Exception`으로 끝나게 짓는다.
 - 예외 이름만 봐도 어떤 문제가 발생했는지 드러나야 한다.
+
+```java
+class InsufficientBalanceException extends Exception {
+    public InsufficientBalanceException(String message) {
+        super(message);
+    }
+}
+
+// 사용 예
+if (balance < amount) {
+    throw new InsufficientBalanceException("잔액이 부족합니다.");
+}
+```
 
 ### 헷갈린 부분
 
